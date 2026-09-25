@@ -33,5 +33,21 @@ DENY SELECT ON dbo.TBL_SC_FLEET_HIST_RAW TO USR_FDE_RO;
 DENY INSERT, UPDATE, DELETE, ALTER ON SCHEMA::dbo TO USR_FDE_RO;
 GO
 
+-- 5. Create the Agent Audit Log (written by the agent, read only by admins in the UI)
+CREATE TABLE FDE_VIEWS.AgentAuditLog (
+    LogID INT IDENTITY(1,1) PRIMARY KEY,
+    [Timestamp] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    SessionID NVARCHAR(100) NOT NULL,
+    NodeExecuted NVARCHAR(100) NULL,
+    ToolName NVARCHAR(200) NULL,
+    Content NVARCHAR(MAX) NULL
+);
+GO
+
+-- The agent may append logs but never read, edit or erase its own audit trail
+GRANT INSERT ON FDE_VIEWS.AgentAuditLog TO USR_FDE_RO;
+DENY SELECT, UPDATE, DELETE ON FDE_VIEWS.AgentAuditLog TO USR_FDE_RO;
+GO
+
 -- # About line 33 :
 -- ON SCHEMA::dbo: The dbo (Database Owner) schema is the default folder structure where your python ingestion script just dumped the TBL_SC_FLEET_HIST_RAW table. This target applies the rules to every single table or view currently inside dbo, or any tables you might add there in the future.
