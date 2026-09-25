@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-import urllib
+import urllib.parse
 import os
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
@@ -43,20 +43,11 @@ df_legacy['SYS_INGEST_FLAG'] = 'Y'
 
 # 3. Connect to Docker MSSQL Server
 print("Connecting to legacy MSSQL Database...")
-# Use the pyodbc driver. (Ensure you have ODBC Driver 17 or 18 for SQL Server installed on your OS)
-connection_string = (
-        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-        f"SERVER={db_host},{db_port};"
-        f"DATABASE=master;"
-        f"UID={db_user};"
-        f"PWD={db_password};"
-        f"Encrypt=no;"
-        f"TrustServerCertificate=yes;"
-    )
-
-params = urllib.parse.quote_plus(connection_string)
-
-engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+# Use the pymssql driver (pure pip install, no system ODBC driver needed)
+engine = create_engine(
+    f"mssql+pymssql://{urllib.parse.quote_plus(db_user)}:{urllib.parse.quote_plus(db_password)}"
+    f"@{db_host}:{db_port}/master"
+)
 
 # 4. Ingest data into the messy table name
 table_name = 'TBL_SC_FLEET_HIST_RAW'

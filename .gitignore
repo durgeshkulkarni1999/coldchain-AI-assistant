@@ -1,3 +1,4 @@
 .env
+__pycache__/
 data/raw/dynamic_supply_chain_logistics_dataset.csv
 .venv/
